@@ -53,8 +53,15 @@ const Giscus = ({ mapping }) => {
   }, [LoadComments])
 
   return (
-    <div className="pt-6 pb-6 text-center text-gray-700 dark:text-gray-300">
-      {enableLoadComments && <button onClick={LoadComments}>Load Comments</button>}
+    <div className="pt-6 pb-6 text-gray-700 dark:text-gray-300">
+      {enableLoadComments && (
+        <button
+          className="rounded bg-primary-500 py-1 px-4 font-semibold text-white hover:bg-primary-700"
+          onClick={LoadComments}
+        >
+          Load Comments
+        </button>
+      )}
       <div className="giscus" id={COMMENTS_ID} />
     </div>
   )
