@@ -25,7 +25,7 @@ export default function AuthorLayout({ children, frontMatter }) {
               width="192px"
               height="192px"
               placeholder="blur"
-              blurDataURL="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mOssXpbDwAFAQIk5PtssAAAAABJRU5ErkJggg=="
+              blurDataURL="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mOssXpbDwAFAQIk5PtssAAAAABJRU5ErkJggg=="
               className="h-48 w-48 rounded-full"
             />
             <h3 className="pt-4 pb-2 text-2xl font-semibold leading-8 tracking-tight">{name}</h3>
