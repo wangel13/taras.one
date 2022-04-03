@@ -11,7 +11,7 @@ const ContentSecurityPolicy = `
   media-src www.leagueoflegends.com;
   connect-src *;
   font-src 'self';
-  frame-src giscus.app
+  frame-src giscus.app w.soundcloud.com
 `
 
 const securityHeaders = [
