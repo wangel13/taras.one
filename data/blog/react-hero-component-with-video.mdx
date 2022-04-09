@@ -7,8 +7,9 @@ draft: false
 ---
 
 import Hero from '@/components/tutorials/Hero'
+import ExampleFrame from '@/components/ExampleFrame'
 
-Let's create a simple `Hero` react component with video playback using Tailwind CSS:
+Let's create a simple `Hero` react component with video playback using Tailwind CSS (`v3`):
 
 ```jsx:Hero.jsx showLineNumbers
 function Hero({ content, category, title, url, videoSrc, left }) {
@@ -86,7 +87,7 @@ I passed this props to component:
 
 And my component looks like:
 
-<div className="not-prose p-6 pb-10 border rounded-2xl">
+<ExampleFrame className="p-6 pb-10">
   <Hero
     content="It's a team-based strategy game where two teams of five powerful champions face off to destroy the other’s base. Choose from over 140 champions to make epic plays, secure kills, and take down towers as you battle your way to victory."
     category="MOBA"
@@ -94,7 +95,7 @@ And my component looks like:
     url="#"
     videoSrc="https://www.leagueoflegends.com/static/hero-de0ba45b1d0959277d12545fbb645722.mp4"
   />
-</div>
+</ExampleFrame>
 
 Let's change `left` prop to `true`:
 
@@ -109,7 +110,7 @@ Let's change `left` prop to `true`:
 />
 ```
 
-<div className="not-prose p-6 pb-10 pl-10 border rounded-2xl">
+<ExampleFrame className="pb-10 pl-10">
   <Hero
     content="It's a team-based strategy game where two teams of five powerful champions face off to destroy the other’s base. Choose from over 140 champions to make epic plays, secure kills, and take down towers as you battle your way to victory."
     category="MOBA"
@@ -118,6 +119,6 @@ Let's change `left` prop to `true`:
     videoSrc="https://www.leagueoflegends.com/static/hero-de0ba45b1d0959277d12545fbb645722.mp4"
     left
   />
-</div>
+</ExampleFrame>
 
 So we have responsive 🦸 Hero react component with customizable props. Try to resize the window.
