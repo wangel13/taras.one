@@ -55,10 +55,7 @@ const Giscus = ({ mapping }) => {
   return (
     <div className="pt-6 pb-6 text-gray-700 dark:text-gray-300">
       {enableLoadComments && (
-        <button
-          className="rounded bg-primary-500 py-1 px-4 font-semibold text-white hover:bg-primary-700"
-          onClick={LoadComments}
-        >
+        <button className="btn btn-primary" onClick={LoadComments}>
           Load Comments
         </button>
       )}
