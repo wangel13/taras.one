@@ -1,0 +1,61 @@
+---
+title: How to make Apollo studio work with authentication in next.js app on dev mode
+summary: I'll show you how to enable authentication in next.js app to use shielded queries in Apollo studio in development mode.
+date: 2022-05-23
+tags: ['next.js', 'tutorial', 'react', 'auth', 'apollo', 'graphql', 'next-auth']
+images: ['/static/images/apollo-graphql-studio-next-auth.png']
+draft: false
+---
+
+[Apollo Studio](https://www.apollographql.com/docs/studio/) is a cloud platform that helps you build, validate, and secure your organization's graph. It's free service for all Apollo users, you can use it with development or production server. I really enjoy to construct queries in studio visual interface.
+
+For authentication, I use [next-auth](https://next-auth.js.org/) library. Easy, flexible and secure, have built in support for popular auth services. All this code you can find and test in my starter [prisma-next-auth-graphql-starter](https://github.com/wangel13/prisma-next-auth-graphql-starter).
+
+## Just three steps, and you can use studio with authenticated graphql queries and mutations.
+
+First you need to enable sameSite `cookies policy` for `sessionToken`. Do it only in `development mode` for security reasons:
+
+```jsx:/pages/api/auth/[...nextauth].ts
+const cookiesPolicy =
+  process.env.NODE_ENV === 'development'
+    ? {
+        sessionToken: {
+          name: `_Secure_next-auth.session-token`,
+          options: {
+            httpOnly: true,
+            sameSite: 'None',
+            path: '/',
+            secure: true,
+          },
+        },
+      }
+    : {}
+
+export default NextAuth({
+  secret: process.env.AUTH_SECRET,
+  providers: [],
+  cookies: cookiesPolicy,
+})
+```
+
+Second, setup `cors` config for next.js api handler to allow credentials for apollo studio origin:
+
+```jsx:/pages/api/graphql.ts
+const corsConfig =
+  process.env.NODE_ENV === 'development'
+    ? {
+        origin: 'https://studio.apollographql.com',
+        allowCredentials: true,
+      }
+    : {}
+
+export default cors(corsConfig)(handler)
+```
+
+Third, enable cookies in apollo studio:
+
+![Apollo studio](/static/images/apollo-studio-auth-settings.png)
+
+That is it, happy querying!
+
+- You can check additional info in [Apollo studio documentation](https://www.apollographql.com/docs/studio/explorer/connecting-authenticating/).
