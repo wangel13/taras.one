@@ -2,7 +2,7 @@ import siteMetadata from '@/data/siteMetadata'
 import { PageSEO } from '@/components/SEO'
 import Soundcloud from '@/components/embeddings/Soundcloud'
 
-const tracks = ['1243533106', '1172495164', '1243543321', '1243544074']
+const tracks = ['1278698554', '1243533106', '1172495164', '1243543321', '1243544074']
 
 export default function Projects() {
   return (
