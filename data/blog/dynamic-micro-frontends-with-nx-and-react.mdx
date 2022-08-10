@@ -1,0 +1,257 @@
+---
+title: Dynamic micro frontends with Nx and React
+summary: How to create React micro frontend Dynamic Module Federation in Nx workspace.
+date: 2022-08-10
+tags: ['Nx', 'tutorial', 'react', 'micro frontends', 'module federation']
+images: ['/static/images/nx-micro-frontend-react.png']
+draft: false
+---
+
+![Dynamic micro frontends with Nx and react](/static/images/nx-micro-frontend-react.png)
+
+When there are a lot of teams on the project, when dynamic frontend expansion is necessary, and when a rebuild of the entire project is not an option, the concept of `Micro Frontends` comes into play in conjunction with `Dynamic Module Federation`.
+
+Nx has a great tutorial for [angular stack](https://nx.dev/module-federation/dynamic-module-federation-with-angular) on this topic. Let's try to implement this concept for `react` stack.
+
+The Nx documentation says:
+
+> Nx is a smart, fast and extensible build system with first class monorepo support and powerful integrations.
+
+Now we will check it in practice, we will generate several applications and a helper library.
+
+## Create Nx workspace
+
+To create Nx workspace, run the command:
+
+```console
+npx create-nx-workspace@latest
+```
+
+Choose a name and type (`apps`), Nx Cloud can be left unconnected.
+
+## Generation of host-app and children apps
+
+Install [@nrwl/react](https://nx.dev/packages/react) plugin as dev dependency. It provides handy generators and utilities that make it easy to manage React apps and libraries inside the Nx workspace.
+
+```console
+npm install -D @nrwl/react
+```
+
+Create host-app and micro frontends:
+
+```console
+npx nx g @nrwl/react:host host --remotes=cart,blog,shop
+```
+
+Select the styling settings you need in applications and wait for the end of the generation.
+
+## Creating a library for easy registration and import of micro frontends
+
+To import micro frontends dynamically by URL, we need to create a library that will help with this. To do this, we will generate a library using the `@nrwl/js` generator and call it `load-remote-module`.
+
+```console
+npx nx g @nrwl/js:library load-remote-module
+```
+
+Let's add the code to the freshly generated library:
+
+```ts:/libs/load-remote-module/src/lib/load-remote-module.ts
+export type ResolveRemoteUrlFunction = (
+  remoteName: string
+) => string | Promise<string>;
+
+declare const __webpack_init_sharing__: (scope: 'default') => Promise<void>;
+declare const __webpack_share_scopes__: { default: unknown };
+
+let resolveRemoteUrl: ResolveRemoteUrlFunction;
+
+export function setRemoteUrlResolver(
+  _resolveRemoteUrl: ResolveRemoteUrlFunction
+) {
+  resolveRemoteUrl = _resolveRemoteUrl;
+}
+
+let remoteUrlDefinitions: Record<string, string>;
+
+export function setRemoteDefinitions(definitions: Record<string, string>) {
+  remoteUrlDefinitions = definitions;
+}
+
+let remoteModuleMap = new Map<string, unknown>();
+let remoteContainerMap = new Map<string, unknown>();
+
+export async function loadRemoteModule(remoteName: string, moduleName: string) {
+  const remoteModuleKey = `${remoteName}:${moduleName}`;
+  if (remoteModuleMap.has(remoteModuleKey)) {
+    return remoteModuleMap.get(remoteModuleKey);
+  }
+
+  const container = remoteContainerMap.has(remoteName)
+    ? remoteContainerMap.get(remoteName)
+    : await loadRemoteContainer(remoteName);
+
+  const factory = await container.get(moduleName);
+  const Module = factory();
+
+  remoteModuleMap.set(remoteModuleKey, Module);
+
+  return Module;
+}
+
+function loadModule(url: string) {
+  return import(/* webpackIgnore:true */ url);
+}
+
+let initialSharingScopeCreated = false;
+
+async function loadRemoteContainer(remoteName: string) {
+  if (!resolveRemoteUrl && !remoteUrlDefinitions) {
+    throw new Error(
+      'Call setRemoteDefinitions or setRemoteUrlResolver to allow Dynamic Federation to find the remote apps correctly.'
+    );
+  }
+
+  if (!initialSharingScopeCreated) {
+    initialSharingScopeCreated = true;
+    await __webpack_init_sharing__('default');
+  }
+
+  const remoteUrl = remoteUrlDefinitions
+    ? remoteUrlDefinitions[remoteName]
+    : await resolveRemoteUrl(remoteName);
+
+  const containerUrl = `${remoteUrl}${
+    remoteUrl.endsWith('/') ? '' : '/'
+  }remoteEntry.js`;
+
+  const container = await loadModule(containerUrl);
+  await container.init(__webpack_share_scopes__.default);
+
+  remoteContainerMap.set(remoteName, container);
+  return container;
+}
+```
+
+This code is based on code from the Nx plugin for [angular](https://github.com/nrwl/nx/blob/master/packages/angular/mf/mf.ts).
+
+Register the `load-remote-module` library in our host-application:
+
+```ts:/apps/host/webpack.config.js
+const withModuleFederation = require('@nrwl/react/module-federation');
+const moduleFederationConfig = require('./module-federation.config');
+
+const coreLibraries = new Set([
+  'react',
+  'react-dom',
+  'react-router-dom',
+  '@microfrontends/load-remote-module',
+]);
+
+module.exports = withModuleFederation({
+  ...moduleFederationConfig,
+  shared: (libraryName, defaultConfig) => {
+    if (coreLibraries.has(libraryName)) {
+      return {
+        ...defaultConfig,
+        eager: true,
+      };
+    }
+
+    // Returning false means the library is not shared.
+    return false;
+  },
+});
+```
+
+Registration is required to avoid the error: [Uncaught Error: Shared module is not available for eager consumption](https://webpack.js.org/concepts/module-federation/#uncaught-error-shared-module-is-not-available-for-eager-consumption).
+
+## Configuration and Connecting micro frontends
+
+Let's save a list of links to our micro frontends in JSON file format - this is one of the easiest methods to get them at runtime, on the host-app side, all that remains is to make a `GET` request. In the future, we may use the server API for this purpose.
+
+Create a file `module-federation.manifest.json` in folder `/apps/host/src/assets/module-federation.manifest.json`:
+
+```json:/apps/host/src/assets/module-federation.manifest.json
+{
+  "cart": "http://localhost:4201",
+  "blog": "http://localhost:4202",
+  "shop": "http://localhost:4203"
+}
+```
+
+Open `/apps/host/src/main.ts` and change for:
+
+```ts:/apps/host/src/main.ts {2, 4-7}
+import { setRemoteDefinitions } from '@microfrontends/load-remote-module';
+import('./bootstrap');
+
+fetch('/assets/module-federation.manifest.json')
+  .then((res) => res.json())
+  .then((definitions) => setRemoteDefinitions(definitions))
+  .then(() => import('./bootstrap').catch((err) => console.error(err)));
+```
+
+As you can see, we:
+
+- Fetch JSON file
+- Call setRemoteDefinitions with its contents
+- This allows webpack to understand where our micro frontends are deployed
+
+### Change the method of loading micro frontends in the host-app to dynamic
+
+At the moment, webpack determines where the micro frontends are located during the build step, as it is specified in the `/apps/host/module-federation.config.js` config file.
+
+Open `module-federation.config.js`, which is located in our host-app folder, and set the value of `remotes` to an empty array so that webpack does not look for modules when building. It will look like this:
+
+```ts:/apps/host/module-federation.config.js
+module.exports = {
+  name: 'host',
+  remotes: [],
+};
+```
+
+Next, we need to change the way micro frontends are loaded in our host-app. Open the file `/apps/host/src/app/app.tsx` and replace the import code with:
+
+```ts:/apps/host/src/app/app.tsx
+import { loadRemoteModule } from '@microfrontends/load-remote-module';
+
+const Cart = React.lazy(() => loadRemoteModule('cart', './Module'));
+
+const Blog = React.lazy(() => loadRemoteModule('blog', './Module'));
+
+const Shop = React.lazy(() => loadRemoteModule('shop', './Module'));
+```
+
+That's all it takes to replace `Static Module Federation` to `Dynamic Module Federation`.
+
+## Serve and check
+
+To serve our host-app and micro frontends:
+
+```console
+npm run start
+```
+
+Or the parallel start of all apps:
+
+```console
+nx run-many --parallel --target=serve --projects=host,cart,blog,shop --maxParallel=100
+```
+
+Open `localhost:4200` and see, what our micro frontends Dynamic Module Federation is working:
+
+- config is fetching from `module-federation.manifest.json` via `GET` request
+- if you remove one of the applications from it, then we will get an error in the browser
+- we can add additional micro frontends
+
+---
+
+GitHub repository - [dynamic-micro-frontends-with-Nx-and-react](https://github.com/wangel13/dynamic-micro-frontends-with-Nx-and-react).
+
+Additional info:
+
+- [dynamic-module-federation-with-angular](https://nx.dev/module-federation/dynamic-module-federation-with-angular)
+- [Monorepos in JavaScript & TypeScript](https://www.robinwieruch.de/javascript-monorepos/)
+- [Nx docs](https://nx.dev/getting-started/intro)
+
+Big thanks to [ScorIL](https://github.com/ScorIL) for the help with the load-remote-module library.

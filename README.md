@@ -1,3 +1,3 @@
-![taras.one-banner](/public/static/images/twitter-card.png)
+[![taras.one-banner](/public/static/images/twitter-card.png)](https://taras.one)
 
-# Taras.one - personal blog
+# [Taras.one](https://taras.one) - personal blog

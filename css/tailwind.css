@@ -2,6 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  @apply relative;
+}
+
+.prose .anchor {
+  @apply invisible absolute;
+  margin-left: -1em;
+  padding-right: 0.5em;
+  width: 100%;
+  max-width: 700px;
+  height: 100%;
+  cursor: pointer;
+  text-decoration: none !important;
+}
+
+.prose .anchor:hover {
+  @apply visible no-underline;
+}
+
+.prose .anchor:after {
+  @apply text-gray-200 dark:text-gray-700;
+  content: '#';
+}
+
+.prose *:hover > .anchor {
+  @apply visible no-underline;
+}
+
 .task-list-item::before {
   @apply hidden;
 }
