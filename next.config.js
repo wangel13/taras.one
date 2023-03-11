@@ -6,7 +6,7 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 const ContentSecurityPolicy = `
   default-src 'self' www.leagueoflegends.com;
   script-src 'self' 'unsafe-eval' 'unsafe-inline' giscus.app vitals.vercel-insights.com ${process.env.NEXT_PUBLIC_UMAMI_HOST};
-  style-src 'self' 'unsafe-inline';
+  style-src 'self' 'unsafe-inline' giscus.app;
   img-src * blob: data:;
   media-src www.leagueoflegends.com;
   connect-src *;
