@@ -87,7 +87,7 @@ export default function PostLayout({ frontMatter, authorDetails, next, prev, chi
             </dl>
             <div className="divide-y divide-gray-200 dark:divide-gray-700 xl:col-span-3 xl:row-span-2 xl:pb-0">
               <div className="prose max-w-none pt-10 pb-16 dark:prose-dark">{children}</div>
-              <div className="py-4 text-sm text-gray-700 dark:text-gray-300">
+              <div className="flex flex-wrap gap-x-5 py-4 text-sm text-gray-700 dark:text-gray-300">
                 {/*<Link href={discussUrl(slug)} rel="nofollow">*/}
                 {/*  {'Discuss on Twitter'}*/}
                 {/*</Link>*/}
@@ -106,6 +106,15 @@ export default function PostLayout({ frontMatter, authorDetails, next, prev, chi
                     <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
                   </svg>
                   View on GitHub
+                </Link>
+                <Link
+                  href={siteMetadata.telegram}
+                  className="inline-flex items-center leading-7 hover:underline"
+                >
+                  <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" />
+                  </svg>
+                  Telegram channel
                 </Link>
               </div>
               <Comments frontMatter={frontMatter} />

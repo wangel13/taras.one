@@ -12,6 +12,7 @@ const siteMetadata = {
   socialBanner: '/static/images/twitter-card.png',
   email: 'tapacpro@gmail.com',
   github: 'https://github.com/wangel13',
+  telegram: 'https://t.me/taras_dot_one',
   // twitter: 'https://twitter.com/WaNgeL_SaTaR',
   // facebook: 'https://facebook.com',
   // youtube: 'https://youtube.com',
